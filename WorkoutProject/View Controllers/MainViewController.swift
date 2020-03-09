@@ -14,6 +14,10 @@ class MainViewController: UIViewController {
     
 //    MARK: - VARIABLES
     
+     var rectOfCell = CGRect()
+    var rectOfCellInSuperview = CGRect()
+
+    
     var currentDay = String()
     
     var currentExercises = [Exercise]()
@@ -26,9 +30,11 @@ class MainViewController: UIViewController {
     
     @IBOutlet weak var lblDay: UILabel!
     
-//    var tempExercises = ["Bicep Curl","Tri Curl","Shi Curl","Li Curl","Mi Curl","Ci Curl",]
+    var dropDownViewController:DropdownViewController?
     
+
     //    MARK: - Life Cycle
+    
     
     override func viewDidLoad() {
         
@@ -59,6 +65,9 @@ class MainViewController: UIViewController {
     
     @objc func showAlert() {
         
+        var config = Realm.Configuration()
+        config.schemaVersion = 1
+
         let alert = UIAlertController(title: "New Workout", message: "Workout Name", preferredStyle: .alert)
 
         alert.addTextField { (TF_workoutName) in
@@ -79,7 +88,7 @@ class MainViewController: UIViewController {
 
                          newExercise.Day = self.lblDay.text!
                         newExercise.WorkoutDate = Date.asString()
-                        let realm = try! Realm()
+                        let realm = try! Realm(configuration: config)
                             try! realm.write {
                                  realm.add(newExercise)
                                 
@@ -207,9 +216,14 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource {
             
     //        cell.btnPlus.addTarget(self, action: #selector(showAlert), for: .touchUpInside)
     //        cell.TF_Workout.text = tempExercises[indexPath.row]
+            
+            rectOfCell = tableView.rectForRow(at: indexPath)
+            rectOfCellInSuperview = tableView.convert(rectOfCell, to: tableView.superview)
             cell.TF_Workout.text =  currentExercises[indexPath.row].nameOfWorkout
             cell.btnPlus.tag = indexPath.row
             cell.btnPlus.addTarget(self, action: #selector(showSetup), for: .touchUpInside)
+            cell.btnDropDown.addTarget(self, action: #selector(dropdownSelection(sender:)), for: .touchUpInside)
+            
             
             return cell
         }
@@ -219,5 +233,157 @@ extension MainViewController:UITableViewDelegate,UITableViewDataSource {
         func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
             return 50
         }
+    
+}
+
+// MARK: - Drop Down Extension
+
+extension MainViewController: DropdownViewControllerDelegate {
+    func dropDown(sender: DropdownViewController, selected: String) {
+        
+        removeListFromParent()
+        
+    }
+    
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches , with:event)
+        //               self.removeListFromParent()
+    }
+    
+    
+    @objc func dropdownSelection(sender:UIButton)  {
+        
+        self.view.endEditing(true)
+        if dropDownViewController == nil {
+            
+            //               self.uiviewHalfTxtFld.isHidden = false
+            let x = rectOfCell.origin.x
+            let y = rectOfCell.origin.y
+            
+            
+            //               let frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+            //            guard let cell = sender.superview?.superview?.superview as? calculatorTableViewCell else {
+            //                return // or fatalError() or whatever
+            //            }
+            //
+            //            let indexPath = calculatorTableView.indexPath(for: cell)
+            //
+            //            rectOfCell = CGRect(x: x+20, y: (y+10) * indexPath?.row) , width: 200, height: 100)
+            
+            guard let cell = sender.superview?.superview as? CustomTableViewCell else {
+                return // or fatalError() or whatever
+            }
+            
+            let indexPath = tableView.indexPath(for: cell)
+            
+            let rectOfCellInTableView = tableView.rectForRow(at: indexPath!)
+            let cellFrame = tableView.convert(rectOfCellInTableView, to: tableView.superview)
+            
+            var frame = CGRect(x: cell.frame.origin.x + 35  , y: cellFrame.origin.y + 40, width: cell.TF_Workout.frame.width, height: 150)
+            
+//            if indexPath?.row == 3 {
+//                
+//                frame = CGRect(x: cell.frame.origin.x + 55  , y: cellFrame.origin.y - 130, width: cell.btnPopupNumber.frame.width, height: 150)
+//            }
+//            
+            let vc = DropdownViewController()
+            
+            //            for clinics
+            if indexPath?.row == 0{
+                vc.currentType = .Age
+                vc.narcIDArray = ["0-2","3-5","6-8","9-11","11-13","13-15","15-17",">17"]
+            }
+                
+                
+            else if indexPath?.row == 1{
+                vc.currentType = .Weight
+                vc.narcIDArray = ["0-10 lbs","11-20 lbs","21-30 lbs","31-40 lbs","41-50 lbs","51-60 lbs","61-70 lbs","71-80 lbs","81-90 lbs"
+                    ,"91-100 lbs","101-110 lbs","111-120 lbs",">120 lbs"]
+                
+            }
+                
+//            else if indexPath?.row == 2{
+//                vc.currentType = .Clinic
+//                var tempArr = [String]()
+//                for i in model.clinicArr {
+//                    tempArr.append(i.name)
+//                }
+//                vc.narcIDArray = tempArr
+//            }
+//
+//                //            for Vets
+//
+//            else if indexPath?.row == 3{
+//                vc.currentType = .Vet
+//                var tempArr = [String]()
+//                for i in model.VetsArr {
+//                    tempArr.append(i.name)
+//                }
+//                vc.narcIDArray = tempArr
+//            }
+            
+            
+            //            if indexPath!.row == 0 {
+            //                vc.narcIDArray = ["Tier 1 15 %"]
+            //
+            //            }
+            //
+            //            else if indexPath!.row == 1 {
+            //                 vc.narcIDArray = ["Tier 2 20 %"]
+            //            }
+            //
+            //            else if indexPath!.row == 2{
+            //                 vc.narcIDArray = ["Tier 3 25 %"]
+            //            }
+            //
+            //            else if indexPath!.row == 2{
+            //                 vc.narcIDArray = ["Tier 4 30 %"]
+            //            }
+            
+            
+            
+            //            vc.view.backgroundColor = #colorLiteral(red: 0.5725490451, green: 0, blue: 0.2313725501, alpha: 1)
+            self.view.addSubview(vc.view)
+            //            self.view.bringSubviewToFront(ViewCalPopup)
+            addChild(vc)
+            //               uiviewHalfTxtFld.addSubview(vc.view)
+            
+            vc.view.alpha = 1
+            vc.delegate = self
+            vc.view.frame = frame
+            
+            // changedd
+            vc.view.layer.cornerRadius = 5
+            vc.view.layer.shadowOffset = CGSize(width: 2, height: 5)
+            vc.view.layer.shadowRadius = 5
+            vc.view.layer.shadowOpacity = 0.5
+            vc.view.layer.shadowColor = UIColor.black.cgColor
+            //               vc.view.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
+            UIView.animate(withDuration: 0.3) {
+                vc.view.alpha = 1
+            }
+            
+            dropDownViewController = vc
+            
+        } else {
+            
+            self.removeListFromParent()
+            
+        }
+        
+    }
+    
+    func removeListFromParent()  {
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            self.dropDownViewController?.view.alpha = 0
+        }, completion: { (complete) in
+            //               self.uiviewHalfTxtFld.isHidden = true
+            self.dropDownViewController?.removeFromParent()
+            self.dropDownViewController?.view.removeFromSuperview()
+            self.dropDownViewController = nil
+        })
+    }
     
 }
